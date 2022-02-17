@@ -1,0 +1,17 @@
+{
+  "name": "scrappy",
+  "version": "0.0.1",
+  "description": "Scraps the website given",
+  "main": "scrappy.js",
+  "scripts": {
+    "app": "node scrappy.js"
+  },
+  "author": "Samil",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.26.0",
+    "cheerio": "^1.0.0-rc.10",
+    "commander": "^9.0.0",
+    "playwright": "^1.19.1"
+  }
+}
