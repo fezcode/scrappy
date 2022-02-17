@@ -10,7 +10,46 @@ program
     .name('scrappy')
     .description('CLI tool for web scraping.')
     .version('0.0.1')
+
+program
+    .command('json')
+    .description('Create JSON for `url` command')
+    .action( () => {
+        var readlineSync = require('readline-sync');
+
+        let json_obj = {};
+ 
+        var run = true;
+
+        console.log('Type `q` to exit at any prompt.')
+        while(run) {
+            var field = readlineSync.question('Field: ');
+            if (field === 'q') break;
+
+            var value = readlineSync.question('Value: ');
+            if (value === 'q') break;
+
+            console.log();
+
+            json_obj[field] = value;
+        
+        }
+        
+        var str_json_obj = JSON.stringify(json_obj);
+
+        console.log(json_obj);
+        console.log(str_json_obj);
+
+        str_json_obj = str_json_obj.replace(/\"/g, "\\\"");
+        console.log(str_json_obj);
+        
+
+
+        process.exit(0);
+    });
+
     
+
 program
     .command('url')
     .description('URL for scraping')
@@ -27,9 +66,10 @@ program
 
         rootElement = options.rootElement;
         try {
-            var str_json = JSON.stringify(options.jsonObject);
-            console.log("XXX:" + str_json);
-            jsonObject = JSON.parse(str_json);
+            console.log("ARG: " + options.jsonObject);
+            // var str_json = JSON.stringify(options.jsonObject);
+            // console.log("XXX:" + str_json);
+            jsonObject = JSON.parse(options.jsonObject);
         } catch (e) {
             console.error("Error: " + e.message);
             process.exit(1);

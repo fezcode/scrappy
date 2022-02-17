@@ -12,6 +12,7 @@
     "axios": "^0.26.0",
     "cheerio": "^1.0.0-rc.10",
     "commander": "^9.0.0",
-    "playwright": "^1.19.1"
+    "playwright": "^1.19.1",
+    "readline-sync": "^1.4.10"
   }
 }
