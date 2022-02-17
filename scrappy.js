@@ -14,34 +14,81 @@ program
 program
     .command('json')
     .description('Create JSON for `url` command')
-    .action( () => {
+    .action(() => {
         var readlineSync = require('readline-sync');
 
-        let json_obj = {};
- 
-        var run = true;
+        let json_array = [];
 
+        var run = true;
         console.log('Type `q` to exit at any prompt.')
         while(run) {
+            let json_obj = {};
+
             var field = readlineSync.question('Field: ');
             if (field === 'q') break;
 
-            var value = readlineSync.question('Value: ');
-            if (value === 'q') break;
+            var selector = readlineSync.question('Selector: ');
+            if (selector === 'q') break;
 
-            console.log();
+            var wrong_type = true;
+            var type;
+            while (wrong_type) {
+                type = readlineSync.question('Type (text or attr): ');
+                
+                if (type === 'q') {
+                    run = false;
+                    break;
+                } 
 
-            json_obj[field] = value;
+                if (['text', 'attr'].indexOf(type) < 0 ) {
+                    console.error("Wrong type given.")
+                } else {
+                    wrong_type = false;
+                }
+            }
+
+            if (!run) break;
+            
+            var attr_value = readlineSync.question('Attr Selector (if any): ');
+            if (attr_value === 'q') break;
+
+            json_obj = {
+                field: field,
+                selector: selector,
+                type: type,
+                attr_value: attr_value
+            }
+
+            json_array.push(json_obj);
+
+            // console.log(json_obj);
+            
+
+            // json_obj[field] = value;
+
+
+
+
+
+
+            // var str_json_obj = JSON.stringify(json_obj);
+
+            // console.log(json_obj);
+            // console.log(str_json_obj);
+
+            // str_json_obj = str_json_obj.replace(/\"/g, "\\\"");
+            // console.log(str_json_obj);
+
+            // json_array.push(str_json_obj);
+        
         
         }
+
+        var str_json_array = JSON.stringify(json_array);
+        str_json_array = str_json_array.replace(/\"/g, "\\\"");
+
+        console.log(str_json_array);
         
-        var str_json_obj = JSON.stringify(json_obj);
-
-        console.log(json_obj);
-        console.log(str_json_obj);
-
-        str_json_obj = str_json_obj.replace(/\"/g, "\\\"");
-        console.log(str_json_obj);
         
 
 
@@ -86,7 +133,7 @@ console.log('--------------------------------');
 console.log(jsonObject);
 console.log('--------------------------------');
 
-console.log(jsonObject['link'])
+console.log(jsonObject[0].field)
 
 var x = { piss: 12}
 console.log(x)
@@ -101,19 +148,19 @@ const extractNews = $ =>
         .map( (_,product) => {
             const $product = $(product);
             return {
-                link: $product.find('a').attr('href'),
+                link:    $product.find('a').attr('href'),
                 imglink: $product.find('a > div.news-photo > img').attr('src'), 
-                title: $product.find('a > div.news-footer > h3').text(), 
-                date: $product.find('a > div.news-footer > div.date').text(), 
-                text: $product.find('a > div.news-footer > div.text').text(), 
+                title:   $product.find('a > div.news-footer > h3').text(), 
+                date:    $product.find('a > div.news-footer > div.date').text(), 
+                text:    $product.find('a > div.news-footer > div.text').text(), 
             };
         }).toArray();
 
 axios.get('https://samsun.bel.tr/samsun-haber/genel-haberler').then(({ data }) => {
         const $ = cheerio.load(data);
-        $.html();
+        // $.html();
         const news = extractNews($);
-        console.log(news.slice());
+        console.log(news.slice(0, 14));
      });
 
 
