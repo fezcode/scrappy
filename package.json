@@ -1,6 +1,6 @@
 {
   "name": "scrappy",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "description": "Scraps the website given",
   "main": "scrappy.js",
   "scripts": {
@@ -12,7 +12,6 @@
     "axios": "^0.26.0",
     "cheerio": "^1.0.0-rc.10",
     "commander": "^9.0.0",
-    "playwright": "^1.19.1",
     "readline-sync": "^1.4.10"
   }
 }

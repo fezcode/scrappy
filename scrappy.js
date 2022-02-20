@@ -1,17 +1,18 @@
 const axios = require('axios'); 
 const cheerio = require('cheerio'); 
 const { program } = require('commander');
+const readlineSync = require('readline-sync');
+
 
 program
     .name('scrappy')
     .description('CLI tool for web scraping.')
-    .version('0.0.1')
+    .version('0.2.0')
 
 program
     .command('json')
     .description('Create selector JSON for `url` command')
     .action(() => {
-        var readlineSync = require('readline-sync');
         let json_array = [];
         var run = true;
 
@@ -58,6 +59,7 @@ program
         var str_json_array = JSON.stringify(json_array);
         str_json_array = str_json_array.replace(/\"/g, "\\\"");
         str_json_array = str_json_array.replace(/\>/g, "\\u003E");
+        str_json_array = str_json_array.replace(/\#/g, "\\u0023");
         str_json_array = '\' ' + str_json_array + ' \'';
 
         console.log(str_json_array);        
@@ -69,17 +71,32 @@ program
 program
     .command('url')
     .description('URL for scraping')
-    .argument('<string>', 'url to scrap')
-    .option('-r, --root-element <string>', 'display just the first substring')
-    .option('-j, --json-object <string>', 'what to parse')
-    .action((str, options) => {
+    .argument('<url>', 'url to scrap')
+    .requiredOption('-r, --root-element <string>', 'display just the first substring')
+    .requiredOption('-j, --json-object <string>', 'what to parse')
+    .option('-t, --time-interval <number>', 'time interval to run application')
+    .option('-f, --first <number>', 'first n elements will be returned.')
+    .action(async (str, options) => {
+        
         var url = str;
         var rootElement = null;
         var jsonObject = null;
+        var timeInterval = options.timeInterval ?? 0;
+        var first = null;
 
         if (!options.rootElement || !options.jsonObject) {
             console.error('Arguments are not given.')
             process.exit(1);
+        }
+
+        if (isNaN(options.first)) {
+            console.error("--first is not number.")
+            process.exit(2);
+        } else if (options.first < 0) {
+            console.error("--first cannot be negative")
+            process.exit(3);
+        } else {
+            first = options.first;
         }
 
         rootElement = options.rootElement;
@@ -92,57 +109,48 @@ program
             process.exit(1);
         }
 
-
         /// Second part
+        while(true) {
+            console.log('Starting to scrap.');
+            /// Scrap part
+            const extractNews = $ => 
+                $(rootElement)
+                    .map( (_,product) => {
+                        const $product = $(product);
+                        let temp_obj = {};
+                        jsonObject.forEach(element => {
+                            switch (element.type) {
+                                case 'text':
+                                    temp_obj[element.field] = $product.find(element.selector).text()
+                                    break;
+                                case 'attr':
+                                    temp_obj[element.field] = $product.find(element.selector).attr(element.attr_value)                            
+                                    break;
+                            }
+                        });
+                        return temp_obj;
+                    }).toArray();
 
-        console.log(typeof(jsonObject));
+            await axios.get(url).then(({ data }) => {
+                const $ = cheerio.load(data);
+                const news = extractNews($);
+                
+                if (first) {
+                    console.log(news.slice(0, first));
+                } else {
+                    console.log(news);
+                }
+            });
 
-        console.log('--------------------------------');
-        console.log(jsonObject);
-        console.log('--------------------------------');
-
-        console.log(jsonObject[0].field)
-
-        var x = { piss: 12}
-        console.log(x)
-        console.log(x['piss'])
-
-
-        /// Scrap part
-        const extractNews = $ => 
-            $(rootElement)
-                .map( (_,product) => {
-                    const $product = $(product);
-                    let temp_obj = {};
-                    jsonObject.forEach(element => {
-                        switch (element.type) {
-                            case 'text':
-                                temp_obj[element.field] = $product.find(element.selector).text()
-                                break;
-                            case 'attr':
-                                temp_obj[element.field] = $product.find(element.selector).attr(element.attr_value)                            
-                                break;
-                        }
-                    });
-
-                    return temp_obj;
-
-                    // return {
-                    //     link:    $product.find('a').attr('href'),
-                    //     imglink: $product.find('a > div.news-photo > img').attr('src'), 
-                    //     title:   $product.find('a > div.news-footer > h3').text(), 
-                    //     date:    $product.find('a > div.news-footer > div.date').text(), 
-                    //     text:    $product.find('a > div.news-footer > div.text').text(), 
-                    // };
-                }).toArray();
-
-        axios.get(url).then(({ data }) => {
-            const $ = cheerio.load(data);
-            // $.html();
-            const news = extractNews($);
-            console.log(news.slice(0, 14));
-        });
-
+            if (timeInterval > 0) {
+                console.log("Waiting.")
+                const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
+                await delay(timeInterval)
+                console.log("Waiting...")
+            } else {
+                break;
+            }
+        } // while        
       })
 
 program.parse()
